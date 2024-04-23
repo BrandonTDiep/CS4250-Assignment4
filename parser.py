@@ -19,6 +19,8 @@ def connectDataBase():
 
 
 def store_professors(name, title, office, phone, email, website):
+    # Connecting to the database
+    db = connectDataBase()
     # Creating a collection
     professors = db.professors
 
@@ -36,46 +38,46 @@ def store_professors(name, title, office, phone, email, website):
     professors.insert_one(professorsDoc)
 
 
-# Connecting to the database
-db = connectDataBase()
+def parser(target_page_url):
+    # Connecting to the database
+    db = connectDataBase()
 
-document = db.pages.find_one(
-    {'url': 'https://www.cpp.edu/sci/computer-science/faculty-and-staff/permanent-faculty.shtml'})
+    document = db.pages.find_one({'url': target_page_url})
 
-professors = []
-req = requests.get(document['url'])
-html = req.text
-bs = BeautifulSoup(html, 'html.parser')
-professor = bs.find_all('div', {'class': 'clearfix'})
+    professors = []
+    req = requests.get(document['url'])
+    html = req.text
+    bs = BeautifulSoup(html, 'html.parser')
+    professor = bs.find_all('div', {'class': 'clearfix'})
 
-for prof in professor:
-    h2_tag = prof.find('h2')
-    if h2_tag:
-        name = h2_tag.text.strip()
-        print(name)
-    else:
-        continue
-    # name, title, office, phone, email, and, website
-    title_tag = prof.find('strong', string=re.compile("Title"))
-    title = title_tag.next_sibling.replace(":", "").strip()
-    print(title)
+    for prof in professor:
+        h2_tag = prof.find('h2')
+        if h2_tag:
+            name = h2_tag.text.strip()
+            print(name)
+        else:
+            continue
+        # name, title, office, phone, email, and, website
+        title_tag = prof.find('strong', string=re.compile("Title"))
+        title = title_tag.next_sibling.replace(":", "").strip()
+        print(title)
 
-    office_tag = prof.find('strong', string=re.compile("Office"))
-    office = office_tag.next_sibling.replace(":", "").strip()
-    print(office)
+        office_tag = prof.find('strong', string=re.compile("Office"))
+        office = office_tag.next_sibling.replace(":", "").strip()
+        print(office)
 
-    phone_tag = prof.find('strong', string=re.compile("Phone"))
-    phone = phone_tag.next_sibling.replace(":", "").strip()
-    print(phone)
+        phone_tag = prof.find('strong', string=re.compile("Phone"))
+        phone = phone_tag.next_sibling.replace(":", "").strip()
+        print(phone)
 
-    email_tag = prof.find('strong', string=re.compile("Email"))
-    email = email_tag.find_next('a').get_text().replace(":", "")
-    print(email)
+        email_tag = prof.find('strong', string=re.compile("Email"))
+        email = email_tag.find_next('a').get_text().replace(":", "")
+        print(email)
 
-    web_tag = prof.find('strong', string=re.compile("Web"))
-    website = web_tag.find_next('a').get_text().replace(":", "")
-    print(website)
+        web_tag = prof.find('strong', string=re.compile("Web"))
+        website = web_tag.find_next('a').get_text().replace(":", "")
+        print(website)
 
-    print()
+        print()
 
-    store_professors(name, title, office, phone, email, website)
+        store_professors(name, title, office, phone, email, website)

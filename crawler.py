@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
+from parser import *
 import re
 import requests
 
@@ -36,7 +37,7 @@ def get_crawler_thread(frontier):
         html = req.text
         bs = BeautifulSoup(html, 'html.parser')
         stop_criteria = bs.find('h1', string="Permanent Faculty")
-        includeUrl = '{}://{}'.format(urlparse(url).scheme, urlparse(url).netloc)
+        includeCPPUrl = '{}://{}'.format(urlparse(url).scheme, urlparse(url).netloc) #https://www.cpp.edu
         print(url)
         storePage(url, html)
 
@@ -45,25 +46,26 @@ def get_crawler_thread(frontier):
             print('Found')
             return url
         else:
-            for link in bs.find_all('a', href=re.compile('^(/|.*' + includeUrl + ')')):
+            for link in bs.find_all('a', href=re.compile('^(/|.*' + includeCPPUrl + ')')):
                 if 'href' in link.attrs:
                     if link.attrs['href'] not in pagesSet:
                         if link.attrs['href'].startswith('/'):
-                            frontier.append(includeUrl + link.attrs['href'])
-                            pagesSet.add(includeUrl + link.attrs['href'])
+                            frontier.append(includeCPPUrl + link.attrs['href'])
+                            pagesSet.add(includeCPPUrl + link.attrs['href'])
                         else:
                             newPage = link.attrs['href']
-                            pagesSet.add(newPage)
                             frontier.append(newPage)
+                            pagesSet.add(newPage)
 
 
-frontier = ['https://www.cpp.edu/sci/computer-science/']
-# Connecting to the database
-db = connectDataBase()
+if __name__ == '__main__':
+    frontier = ['https://www.cpp.edu/sci/computer-science/']
+    # Connecting to the database
+    db = connectDataBase()
 
-# Creating a collection
-pages = db.pages
-pagesSet = set()
-target_page_url = get_crawler_thread(frontier)
-
+    # Creating a collection
+    pages = db.pages
+    pagesSet = set()
+    target_page_url = get_crawler_thread(frontier)
+    parser(target_page_url)
 
